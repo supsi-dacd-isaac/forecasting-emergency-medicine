@@ -7,7 +7,6 @@ compute_accuracy <- function(train, measure = "mse") {
   if (fs::file_exists(filename)) {
     return(invisible(read_rds(filename)))
   }
-  print('file read')
   # Find simulation files
   files <- fs::dir_ls(storage_folder, glob = paste0("*_sim_*.rds"))
   # Find models
@@ -15,16 +14,14 @@ compute_accuracy <- function(train, measure = "mse") {
     str_extract("[a-zA-Z0-9]*_") |>
     str_remove("_") |>
     unique()
-  print(models)
   # Find methods
   methods <- str_remove(files, storage_folder) |>
     str_extract("[a-zA-Z]*.rds") |>
     str_remove(".rds") |>
     unique()
-  print(methods)
   methods <- methods[methods != ""]
   accuracy <- NULL
-  print('methods parsed')
+
   for (i in seq_along(models)) {
     for (j in seq_along(methods)) {
       print(i)
@@ -64,8 +61,9 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
     sim <- read_rds(files[i])
     sim <- apply(sim, c(1, 2), mean)
     dumb_fixed_string <- gsub(" - ", "_", files[i])
-    dumb_fixed_string <- gsub("anubhab.biswas", "", dumb_fixed_string)
-    dumb_fixed_string <- gsub(".rds", "", dumb_fixed_string)
+    dumb_fixed_string <- gsub("-", "_", dumb_fixed_string)
+    dumb_fixed_string <- gsub("\\.", "", dumb_fixed_string)
+    print(dumb_fixed_string)
     n <- parse_number(dumb_fixed_string)
     e[, , i] <- sim - alltrain[, n + seq(84)]
   }
