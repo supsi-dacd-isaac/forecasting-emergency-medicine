@@ -11,6 +11,8 @@ source(here::here("rscript/hts/ensemble.R"))
 source(here::here("rscript/hts/qcombinations.R"))
 source(here::here("rscript/hts/accuracy.R"))
 
+storage_folder <- "/home/bombolo/R/forecasting-emergency-medicine/temp_results/"
+
 # Parallelization
 plan(multisession, workers = 3)
 

@@ -31,7 +31,7 @@ fit_models <- function(object, model_function = "ets") {
   }
   models <- furrr::future_map(as.list(ally), fit_model,
     model_function = model_function,
-    .options = furrr_options(seed = NULL)
+    .options = furrr_options(seed = NULL, globals = list(naiveecdf=naiveecdf, iglm=iglm, tscount=tscount, holidays=holidays, tsglm=tsglm, Arima=Arima))
   )
   # Save results to file and then return them
   write_rds(models, filename, compress = "bz2")

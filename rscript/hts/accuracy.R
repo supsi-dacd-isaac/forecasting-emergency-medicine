@@ -61,7 +61,9 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
   for (i in seq(norigins)) {
     sim <- read_rds(files[i])
     sim <- apply(sim, c(1, 2), mean)
-    n <- parse_number(files[i])
+    purged_filename <- gsub(" - ", "_", files[i])
+    purged_filename <- gsub(".", "", purged_filename)
+    n <- parse_number(purged_filename)
     e[, , i] <- sim - alltrain[, n + seq(84)]
   }
   if (measure == "mse") {
