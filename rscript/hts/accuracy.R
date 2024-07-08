@@ -1,6 +1,5 @@
 # Compute MSE for all models and methods
 # train = gts object training data
-
 compute_accuracy <- function(train, measure = "mse") {
   # Has this already been run?
   filename <- paste0(storage_folder, measure, ".rds")
@@ -8,7 +7,7 @@ compute_accuracy <- function(train, measure = "mse") {
   if (fs::file_exists(filename)) {
     return(invisible(read_rds(filename)))
   }
-
+  print('file read')
   # Find simulation files
   files <- fs::dir_ls(storage_folder, glob = paste0("*_sim_*.rds"))
   # Find models
@@ -16,15 +15,20 @@ compute_accuracy <- function(train, measure = "mse") {
     str_extract("[a-zA-Z0-9]*_") |>
     str_remove("_") |>
     unique()
+  print(models)
   # Find methods
   methods <- str_remove(files, storage_folder) |>
     str_extract("[a-zA-Z]*.rds") |>
     str_remove(".rds") |>
     unique()
+  print(methods)
   methods <- methods[methods != ""]
   accuracy <- NULL
+  print('methods parsed')
   for (i in seq_along(models)) {
     for (j in seq_along(methods)) {
+      print(i)
+      print(j)
       accuracy_tmp <- compute_accuracy_specific(train, models[i], methods[j], measure)
       accuracy <- bind_rows(
         accuracy,
@@ -40,12 +44,10 @@ compute_accuracy <- function(train, measure = "mse") {
   write_rds(accuracy, filename, compress = "bz2")
   return(accuracy)
 }
-
 # Compute MSE for a specific model and reconciliation method
 # train = gts object training data
 # model_function = function used to model each time series. e.g., ets or auto.arima or tscount
 # method = method of reconciliation
-
 compute_accuracy_specific <- function(train, model_function = "ets", method = "wls",
                                       measure = c("mse", "rmsse", "mase", "crps")) {
   measure <- match.arg(measure)
@@ -61,9 +63,10 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
   for (i in seq(norigins)) {
     sim <- read_rds(files[i])
     sim <- apply(sim, c(1, 2), mean)
-    purged_filename <- gsub(" - ", "_", files[i])
-    purged_filename <- gsub(".", "", purged_filename)
-    n <- parse_number(purged_filename)
+    dumb_fixed_string <- gsub(" - ", "_", files[i])
+    dumb_fixed_string <- gsub("anubhab.biswas", "", dumb_fixed_string)
+    dumb_fixed_string <- gsub(".rds", "", dumb_fixed_string)
+    n <- parse_number(dumb_fixed_string)
     e[, , i] <- sim - alltrain[, n + seq(84)]
   }
   if (measure == "mse") {
@@ -86,7 +89,6 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
       }
     }
   }
-
   # Overall accuracy
   overall <- colMeans(accuracy)
   # Collapse bottom level
@@ -105,7 +107,6 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
     return(accuracy)
   }
 }
-
 # Compute CRPS given simulated values x and actual y
 crps_sample <- function(x, y) {
   # Set CRPS of zero series to zero
