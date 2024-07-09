@@ -17,7 +17,7 @@ storage_folder <- "/home/bombolo/R/forecasting-emergency-medicine/temp_results/"
 plan(multisession, workers = 3)
 
 # Read hierarchical/grouped time series
-# incident_gts <- read_rds(paste0(storage_folder, "incidents_test_gts.rds"))
+incident_gts <- read_rds(paste0(storage_folder, "incidents_test_gts.rds"))
 incident_gts <- read_rds(paste0(storage_folder, "incidents_gts.rds"))
 holidays <- read_rds(paste0(storage_folder, "holidays_ts.rds"))
 
@@ -43,7 +43,7 @@ create_qcomb(models_to_use = c("ets", "iglm", "tscount")) # Don't include naive
 
 mse <- compute_accuracy(incident_gts, "mse")
 mase <- compute_accuracy(incident_gts, "mase")
-rmsse <- compute_accuracy(incident_gts, "rmsse")
+msse <- compute_accuracy(incident_gts, "msse")
 crps <- compute_accuracy(incident_gts, "crps")
 
 mse |>
@@ -58,10 +58,10 @@ mase |>
   arrange(series, mase) |>
   print(n = 200)
 
-rmsse |>
+msse |>
   group_by(method, model, series) |>
-  summarise(rmsse = sqrt(mean(rmsse^2))) |>
-  arrange(series, rmsse) |>
+  summarise(msse = mean(msse^2)) |>
+  arrange(series, msse) |>
   print(n = 200)
 
 crps |>

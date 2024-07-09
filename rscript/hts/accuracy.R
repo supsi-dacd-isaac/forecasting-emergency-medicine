@@ -74,7 +74,14 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
     scale_factor <- rowMeans(sweep(alltrain, 1, rowMeans(alltrain))^2)
     mse <- apply(e^2, c(1, 2), mean)
     accuracy <- sweep(mse, 1, scale_factor, FUN = "/")
-  } else if (measure == "mase") {
+    
+  } else if (measure == "msse") {
+    # Use insample MSE as scaling factor
+    scale_factor <- rowMeans(sweep(alltrain, 1, rowMeans(alltrain))^2)
+    mse <- apply(e^2, c(1, 2), mean)
+    accuracy <- sweep(mse, 1, scale_factor, FUN = "/")
+    
+  }else if (measure == "mase") {
     # Use insample MAE as scaling factor
     scale_factor <- rowMeans(abs(sweep(alltrain, 1, rowMeans(alltrain))))
     mae <- apply(abs(e), c(1, 2), mean)
