@@ -1,12 +1,4 @@
-
-#Creating a tibble object for comparing results of the original paper
-
-#metric
-mase <- readRDS(paste0(storage_folder,"mase.rds"))
-msse <- readRDS(paste0(storage_folder,"msse.rds"))
-crps <- readRDS(paste0(storage_folder,"crps.rds"))
-
-tabulate_comparison <- function(metric, key){
+tabulate_comparison <- function(metric, key, storage_folder){
   
   method_key <- eval(parse(text=paste0(key,'$','method')))
   model_key <- eval(parse(text=paste0(key,'$','model')))
@@ -88,7 +80,7 @@ tabulate_comparison <- function(metric, key){
       for(k in 1:2){
         disp[i,j,k] = 100 * ((((df_original[[i]])[j,k]-(df_comp[[i]])[j,k])) / 
                                (df_original[[i]])[j,k])
-        
+        compare_res
       }
     }
     df_new[[i]] <- data.frame(disp[i,,])
@@ -103,10 +95,18 @@ tabulate_comparison <- function(metric, key){
   
 }
 
-tabulate_comparison(mase,'mase')
-tabulate_comparison(msse,'msse')
-tabulate_comparison(crps,'crps')
 
+
+compare_res <- function(storage_folder){
+  #metric
+  mase <- readRDS(paste0(storage_folder,"mase.rds"))
+  msse <- readRDS(paste0(storage_folder,"msse.rds"))
+  crps <- readRDS(paste0(storage_folder,"crps.rds"))
+  
+  tabulate_comparison(mase,'mase', storage_folder)
+  tabulate_comparison(msse,'msse', storage_folder)
+  tabulate_comparison(crps,'crps', storage_folder)
+}
 
 
 

@@ -46,7 +46,7 @@ compute_accuracy <- function(train, measure = "mse") {
 # model_function = function used to model each time series. e.g., ets or auto.arima or tscount
 # method = method of reconciliation
 compute_accuracy_specific <- function(train, model_function = "ets", method = "wls",
-                                      measure = c("mse", "rmsse", "mase", "crps")) {
+                                      measure = c("mse", "rmsse", "mase", "crps", "msse")) {
   measure <- match.arg(measure)
   # Find simulation files
   files <- fs::dir_ls(storage_folder, glob = paste0("*", model_function, "_*_sim_", method, ".rds"))

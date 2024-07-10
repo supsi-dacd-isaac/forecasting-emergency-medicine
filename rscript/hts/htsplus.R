@@ -4,7 +4,8 @@
 # model_function = function used to model each time series.
 # e.g., ets or auto.arima or tscount
 
-fit_models <- function(object, model_function = "ets") {
+
+fit_models <- function(object, model_function = "ets", SEED=123) {
   # Number of observations in training set
   ntime <- NROW(object$bts)
 
@@ -31,7 +32,7 @@ fit_models <- function(object, model_function = "ets") {
   }
   models <- furrr::future_map(as.list(ally), fit_model,
     model_function = model_function,
-    .options = furrr_options(seed = NULL, globals = list(naiveecdf=naiveecdf, iglm=iglm, tscount=tscount, holidays=holidays, tsglm=tsglm, Arima=Arima))
+    .options = furrr_options(seed = SEED, globals = list(naiveecdf=naiveecdf, iglm=iglm, tscount=tscount, holidays=holidays, tsglm=tsglm, Arima=Arima))
   )
   # Save results to file and then return them
   write_rds(models, filename, compress = "bz2")
@@ -45,7 +46,7 @@ fit_models <- function(object, model_function = "ets") {
 # model_function = output from fit_models()
 # type = Type of residual to store
 
-calculate_residuals <- function(object, model_function, type = c("innovation", "response")) {
+calculate_residuals <- function(object, model_function, type = c("innovation", "response"), SEED=123) {
   # Type of residual to store
   type <- match.arg(type)
 
@@ -59,7 +60,7 @@ calculate_residuals <- function(object, model_function, type = c("innovation", "
   }
 
   # Grab models
-  models <- fit_models(object, model_function)
+  models <- fit_models(object, model_function, SEED=SEED)
   ntime <- NROW(object$bts)
   nseries <- length(models)
 
@@ -81,7 +82,7 @@ calculate_residuals <- function(object, model_function, type = c("innovation", "
 # object = gts object
 # model_function = function used to model each time series.
 
-make_mapping_matrices <- function(object, model_function) {
+make_mapping_matrices <- function(object, model_function, SEED=123) {
   ntime <- NROW(object$bts)
 
   # Form file name for saving results
@@ -93,7 +94,7 @@ make_mapping_matrices <- function(object, model_function) {
   }
 
   # Grab the residuals from each model
-  response_res <- calculate_residuals(object, model_function, type = "response")
+  response_res <- calculate_residuals(object, model_function, type = "response", SEED=SEED)
   nseries <- NCOL(response_res)
 
   # Create S matrix
@@ -132,7 +133,7 @@ make_mapping_matrices <- function(object, model_function) {
 # model_function = function used to model each time series. e.g., ets or auto.arima or tscount
 # nsim = number of simulations in computing prediction intervals using nonparametric method
 
-future_sample_paths <- function(object, model_function = "ets", h = 84, nsim = 1000) {
+future_sample_paths <- function(object, model_function = "ets", h = 84, nsim = 1000, SEED=123) {
   ntime <- NROW(object$bts)
 
   # Form file name for saving results
@@ -143,9 +144,9 @@ future_sample_paths <- function(object, model_function = "ets", h = 84, nsim = 1
     return(invisible(read_rds(filename)))
   }
 
-  models <- fit_models(object, model_function)
+  models <- fit_models(object, model_function, SEED=SEED)
   restype <- dplyr::if_else(identical(model_function, "ets"), "innovation", "response")
-  innov_res <- calculate_residuals(object, model_function, type = restype)
+  innov_res <- calculate_residuals(object, model_function, type = restype, SEED=SEED)
   nseries <- length(models)
 
   # Compute reconciled future sample paths using cross-sectional bootstrap
@@ -153,10 +154,11 @@ future_sample_paths <- function(object, model_function = "ets", h = 84, nsim = 1
   dimnames(sim)[[1]] <- names(models)
   dimnames(sim)[[2]] <- paste0("h=", seq(h))
   dimnames(sim)[[3]] <- paste0("sim", seq(nsim))
+  set.seed(seed = SEED)
   for (j in seq(nsim)) {
     bootres <- innov_res[sample(ntime, size = h, replace = TRUE), ]
     for (i in seq(nseries)) {
-      sim[i, , j] <- simulate(models[[i]], innov = bootres[, i])
+      sim[i, , j] <- simulate(models[[i]], innov = bootres[, i], seed = SEED)
     }
   }
   # Set negative to zero
@@ -172,7 +174,7 @@ future_sample_paths <- function(object, model_function = "ets", h = 84, nsim = 1
 # model_function = function used to model each time series. e.g., ets or auto.arima or tscount
 # method = method of reconciliation
 
-reconcile_sample_paths <- function(object, model_function = "ets") {
+reconcile_sample_paths <- function(object, model_function = "ets", SEED=123) {
   ntime <- NROW(object$bts)
   methods <- c("bu", "wls", "mint")
 
@@ -184,8 +186,8 @@ reconcile_sample_paths <- function(object, model_function = "ets") {
   }
 
   # Otherwise reconcile for all the methods, and return the first one
-  sim <- future_sample_paths(object, model_function)
-  M <- make_mapping_matrices(object, model_function)
+  sim <- future_sample_paths(object, model_function, SEED=SEED)
+  M <- make_mapping_matrices(object, model_function, SEED=SEED)
 
   nsim <- dim(sim)[3]
   filestem <- paste0(storage_folder, model_function, "_", ntime, "_sim_")
