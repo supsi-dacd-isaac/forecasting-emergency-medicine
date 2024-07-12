@@ -10,7 +10,8 @@ library(fabletools)
 library(hts)
 source(here::here("rscript/data/holidays.R"))
 
-storage_folder <- "/home/bombolo/R/forecasting-emergency-medicine/temp_results/"
+results_subfolder<-'run_one/'
+storage_folder <-paste0(getwd(), '/', results_subfolder)
 
 # Read data
 incidents_original <- here::here("data/Nature_of_Incidents_Attended.xlsx") |>
