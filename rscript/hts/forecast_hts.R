@@ -31,7 +31,7 @@ run_recon <- function(rand_seed){
     train <- incident_gts
     train$bts <- subset(train$bts, end = nrow(incident_gts$bts) - origins[i])
     # Create reconciled sample paths for different models
-    reconcile_sample_paths(train, model_function = "ets", SEED=rand_seed)
+    #reconcile_sample_paths(train, model_function = "ets", SEED=rand_seed)
     reconcile_sample_paths(train, model_function = "tscount", SEED=rand_seed)
     reconcile_sample_paths(train, model_function = "iglm", SEED=rand_seed)
     reconcile_sample_paths(train, model_function = "naiveecdf", SEED=rand_seed)
