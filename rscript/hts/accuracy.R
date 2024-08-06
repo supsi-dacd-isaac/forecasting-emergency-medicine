@@ -76,7 +76,6 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
     accuracy <- sweep(mse, 1, scale_factor, FUN = "/")
     
   } else if (measure == "msse") {
-    # Use insample MSE as scaling factor
     scale_factor <- rowMeans(sweep(alltrain, 1, rowMeans(alltrain))^2)
     mse <- apply(e^2, c(1, 2), mean)
     accuracy <- sweep(mse, 1, scale_factor, FUN = "/")
@@ -94,6 +93,7 @@ compute_accuracy_specific <- function(train, model_function = "ets", method = "w
       }
     }
   }
+  print(accuracy)
   # Overall accuracy
   overall <- colMeans(accuracy)
   # Collapse bottom level
@@ -122,3 +122,19 @@ crps_sample <- function(x, y) {
   m <- length(x)
   return((2 / m) * mean((x - y) * (m * (y < x) - seq_len(m) + 0.5)))
 }
+
+
+#Checking crps score for a particular place
+
+# # method = "base" , model = "tscount", h = 1, T = 980, 1st row(node) of the series
+# 
+# y_original <- readRDS(paste0(storage_folder,"full_data.rds"))
+# str(y_original)
+# y_hat <- readRDS(paste0(storage_folder,"tscount_1064_sim_base.rds"))
+# str(y_hat)
+# h=1
+# crps_sample(y_hat[1,h,]-y_original[(1064+h), 1],0)
+
+
+
+

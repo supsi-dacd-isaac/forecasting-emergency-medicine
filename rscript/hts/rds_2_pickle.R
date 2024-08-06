@@ -35,6 +35,7 @@ all_files <- fs::dir_ls(storage_folder, glob = paste0("*.rds"))
 skip_these <- all_files[str_detect(all_files, "_\\d{3,4}\\.rds$")]
 
 files_2_pkl<-setdiff(all_files,skip_these)
+# files_2_pkl<-fs::dir_ls(storage_folder, glob = paste0("*td.rds"))
 
 saving_folder <-"/ssd1/forecasting-emergency-medicine/"
 for(i in seq(length(files_2_pkl))){

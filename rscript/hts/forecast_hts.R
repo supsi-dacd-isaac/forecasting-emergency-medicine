@@ -22,20 +22,23 @@ plan(multisession, workers = 30)
 incident_gts <- read_rds(paste0(storage_folder, "incidents_gts.rds"))
 holidays <- read_rds(paste0(storage_folder, "holidays_ts.rds"))
 
+rand_seed = 123
+crps <- compute_accuracy(incident_gts, "crps")
+
 run_recon <- function(rand_seed){
-  # Test sets of size 84,
-  # origins <- 42 * seq(10) + 42
-  origins <- 42 * seq(10) + 42
-  for (i in seq(origins)) {
-    # Set up training set
-    train <- incident_gts
-    train$bts <- subset(train$bts, end = nrow(incident_gts$bts) - origins[i])
-    # Create reconciled sample paths for different models
-    #reconcile_sample_paths(train, model_function = "ets", SEED=rand_seed)
-    reconcile_sample_paths(train, model_function = "tscount", SEED=rand_seed)
-    reconcile_sample_paths(train, model_function = "iglm", SEED=rand_seed)
-    reconcile_sample_paths(train, model_function = "naiveecdf", SEED=rand_seed)
-  }
+#   # Test sets of size 84,
+#   # origins <- 42 * seq(10) + 42
+#   origins <- 42 * seq(10) + 42
+#   for (i in seq(origins)) {
+#     # Set up training set
+#     train <- incident_gts
+#     train$bts <- subset(train$bts, end = nrow(incident_gts$bts) - origins[i])
+#     # Create reconciled sample paths for different models
+#     #reconcile_sample_paths(train, model_function = "ets", SEED=rand_seed)
+#     reconcile_sample_paths(train, model_function = "tscount", SEED=rand_seed)
+#     reconcile_sample_paths(train, model_function = "iglm", SEED=rand_seed)
+#     reconcile_sample_paths(train, model_function = "naiveecdf", SEED=rand_seed)
+#   }
   
   #create_ensembles() # Include naive
   #create_ensembles(models_to_use = c("ets", "iglm", "tscount")) # Don't include naive
@@ -44,9 +47,10 @@ run_recon <- function(rand_seed){
   
   # Accuracy
   #mse <- compute_accuracy(incident_gts, "mse")
+  crps <- compute_accuracy(incident_gts, "crps")
   mase <- compute_accuracy(incident_gts, "mase")
   msse <- compute_accuracy(incident_gts, "msse")
-  crps <- compute_accuracy(incident_gts, "crps")
+
   
   # mse |>
   #   group_by(method, model, series) |>
@@ -82,3 +86,31 @@ run_recon(rand_seed = 123)
 # results_subfolder<-'run_two/'
 # storage_folder <-paste0(getwd(), '/', results_subfolder)
 # run_recon(456)
+method_m = c("base","mint","td")
+#check the Total level, igml results
+#mase %>% group_by(model, method, series) %>% summarize(mase=mean(mase)) %>% slice(which(model=="iglm"))%>% slice(which(series=="Total"))
+# mase = readRDS(paste0(storage_folder,"mase.rds"))
+
+result <- mase %>%
+  group_by(model, method) %>%
+  summarize(mase = mean(mase, na.rm = TRUE), .groups = 'drop') %>%
+  filter(model %in% c("iglm", "naiveecdf", "tscount") & method %in% c("base", "mint", "td"))
+
+print(result)
+
+crps = readRDS(paste0(storage_folder,"crps.rds"))
+
+result <- crps %>%
+  group_by(model, method) %>%
+  summarize(crps = mean(crps, na.rm = TRUE), .groups = 'drop') %>%
+  filter(model %in% c("iglm", "naiveecdf", "tscount") & method %in% c("base", "mint", "td"))
+
+print(result)
+
+mase %>% group_by(model, method, series) %>% summarize(mase=mean(mase)) %>% slice(which(model=="iglm"))%>% slice(which(series=="Total"))
+crps %>% group_by(model, method, series) %>% summarize(crps=mean(crps)) %>% slice(which(model=="iglm"))%>% slice(which(series=="Total"))
+
+
+
+
+
